@@ -1,0 +1,1851 @@
+{
+  "description": "SaraAlertProdFlow",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "next": "OptOutTypeNotBlank",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "say_incoming_call",
+          "event": "incomingCall"
+        },
+        {
+          "next": "initialize_retry_count",
+          "event": "incomingRequest"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 1380,
+          "y": -960
+        }
+      }
+    },
+    {
+      "name": "sms_assessment_prompt",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "OptOutTypeNotBlankReply",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "send_assessment_sms_no_response",
+          "event": "timeout"
+        },
+        {
+          "next": "send_assessment_sms_error",
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -540,
+          "y": 40
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "{{flow.data.prompt}}",
+        "timeout": "64800"
+      }
+    },
+    {
+      "name": "send_assessment_data_no",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "next": "send_message_1",
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -150,
+          "y": 1780
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"response_status\": \"success_sms\", \n\"experiencing_symptoms\":\"No\", \"patient_submission_token\": \"{{flow.data.patient_submission_token}}\",\n\"threshold_hash\": \"{{flow.data.threshold_hash}}\"}",
+        "url": "FILL_WITH_CUSTOM_CALLBACK_URL"
+      }
+    },
+    {
+      "name": "check_yes_no",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "increment_retry_count",
+          "event": "noMatch"
+        },
+        {
+          "next": "send_assessment_data_yes",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of yes",
+              "arguments": [
+                "{{widgets.sms_assessment_prompt.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "yes,Yes,YES,Yes.,“Yes”,yes”,“Yes.“,yeah,YEAH,Yeah,“yeah”,“Yeah”,si,Si,sí,SI,SÍ,oui,OUI,Oui, oui.,OUI.,Oui.,Haa, HAA,Haa.,HAA."
+            }
+          ]
+        },
+        {
+          "next": "send_assessment_data_no",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of no",
+              "arguments": [
+                "{{widgets.sms_assessment_prompt.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "no,No,NO.,No.,“No”,“no”,“No.“,nope,NOPE,“nope”,“Nope”,Nope,“Nope”,Non,non,NON,Non. NON.,non.,Maya,MAYA,maya,Maya.,maya.,MAYA."
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.sms_assessment_prompt.inbound.Body}}",
+        "offset": {
+          "x": -530,
+          "y": 740
+        }
+      }
+    },
+    {
+      "name": "bad_response",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "OptOutTypeNotBlankRetry",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "send_assessment_sms_no_response",
+          "event": "timeout"
+        },
+        {
+          "next": "send_assessment_sms_error",
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -1210,
+          "y": 1020
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "{{flow.data.try_again}}",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "send_message_1",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -300,
+          "y": 2100
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "{{flow.data.thanks}}"
+      }
+    },
+    {
+      "name": "check_yes_no_again",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "increment_retry_count",
+          "event": "noMatch"
+        },
+        {
+          "next": "send_assessment_data_yes",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of yes",
+              "arguments": [
+                "{{widgets.bad_response.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "yes,Yes,YES,Yes.,“Yes”,yes”,“Yes.“,yeah,YEAH,Yeah,“yeah”,“Yeah”,si,Si,sí,SI,SÍ,oui,OUI,Oui, oui.,OUI.,Oui.,Haa, HAA,Haa.,HAA."
+            }
+          ]
+        },
+        {
+          "next": "send_assessment_data_no",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of no",
+              "arguments": [
+                "{{widgets.bad_response.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "no,No,NO.,No.,“No”,“no”,“No.“,nope,NOPE,“nope”,“Nope”,Nope,“Nope”,Non,non,NON,Non. NON.,non.,Maya,MAYA,maya,Maya.,maya.,MAYA."
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.bad_response.inbound.Body}}",
+        "offset": {
+          "x": -510,
+          "y": 1450
+        }
+      }
+    },
+    {
+      "name": "send_assessment_data_yes",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "next": "send_message_1",
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -460,
+          "y": 1780
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"response_status\": \"success_sms\", \n\"experiencing_symptoms\":\"Yes\", \"patient_submission_token\": \"{{flow.data.patient_submission_token}}\",\n\"threshold_hash\": \"{{flow.data.threshold_hash}}\"}",
+        "url": "FILL_WITH_CUSTOM_CALLBACK_URL"
+      }
+    },
+    {
+      "name": "call_user",
+      "type": "make-outgoing-call-v2",
+      "transitions": [
+        {
+          "next": "split_1",
+          "event": "answered"
+        },
+        {
+          "next": "voice_send_no_answer",
+          "event": "busy"
+        },
+        {
+          "next": "voice_send_no_answer",
+          "event": "noAnswer"
+        },
+        {
+          "next": "voice_send_error",
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "machine_detection_speech_threshold": "2400",
+        "detect_answering_machine": true,
+        "offset": {
+          "x": 1050,
+          "y": 570
+        },
+        "recording_channels": "mono",
+        "timeout": 60,
+        "machine_detection": "Enable",
+        "trim": "do-not-trim",
+        "record": false,
+        "machine_detection_speech_end_threshold": "1200",
+        "machine_detection_timeout": "30",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "machine_detection_silence_timeout": "10000"
+      }
+    },
+    {
+      "name": "welcome_prompt",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "voice_reply_to_prompt",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Joanna",
+        "offset": {
+          "x": 1050,
+          "y": 1120
+        },
+        "loop": 1,
+        "say": "{{flow.data.intro}}",
+        "language": "en-US"
+      }
+    },
+    {
+      "name": "voice_reply_to_prompt",
+      "type": "gather-input-on-call",
+      "transitions": [
+        {
+          "event": "keypress"
+        },
+        {
+          "next": "check_yes_no_voice",
+          "event": "speech"
+        },
+        {
+          "next": "increment_retry_count_en",
+          "event": "timeout"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Joanna",
+        "speech_timeout": "auto",
+        "offset": {
+          "x": 1090,
+          "y": 1540
+        },
+        "loop": 1,
+        "hints": "yes, yeah, yup, no, nope, nah",
+        "finish_on_key": "#",
+        "say": "{{flow.data.prompt}}",
+        "language": "en-US",
+        "stop_gather": true,
+        "gather_language": "en-US",
+        "profanity_filter": "true",
+        "timeout": 6
+      }
+    },
+    {
+      "name": "check_yes_no_voice",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "increment_retry_count_en",
+          "event": "noMatch"
+        },
+        {
+          "next": "voice_send_assessment_no",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of yes,Yes,no,No",
+              "arguments": [
+                "{{widgets.voice_reply_to_prompt.SpeechResult}}"
+              ],
+              "type": "matches_any_of",
+              "value": "no,No.,nope,Nope.,nope."
+            }
+          ]
+        },
+        {
+          "next": "voice_send_assessment_yes",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of yes,Yes,Yes.,Yeah,yeah,Yeah.",
+              "arguments": [
+                "{{widgets.voice_reply_to_prompt.SpeechResult}}"
+              ],
+              "type": "matches_any_of",
+              "value": "yes,Yes,Yes.,Yeah,yeah,Yeah."
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.voice_reply_to_prompt.SpeechResult}}",
+        "offset": {
+          "x": 1230,
+          "y": 1880
+        }
+      }
+    },
+    {
+      "name": "say_lets_try_again",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "voice_reply_to_prompt",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Joanna",
+        "offset": {
+          "x": 1630,
+          "y": 1630
+        },
+        "loop": 1,
+        "say": "{{flow.data.try_again}}",
+        "language": "en-US"
+      }
+    },
+    {
+      "name": "voice_send_no_answer",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 1630,
+          "y": 1080
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"response_status\": \"no_answer_voice\", \"patient_submission_token\": \"{{flow.data.patient_submission_token}}\",\n\"threshold_hash\": \"{{flow.data.threshold_hash}}\"}",
+        "url": "FILL_WITH_CUSTOM_CALLBACK_URL"
+      }
+    },
+    {
+      "name": "split_1",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "voice_send_no_answer",
+          "event": "noMatch"
+        },
+        {
+          "next": "welcome_prompt",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to human",
+              "arguments": [
+                "{{widgets.call_user.AnsweredBy}}"
+              ],
+              "type": "matches_any_of",
+              "value": "human, unknown"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.call_user.AnsweredBy}}",
+        "offset": {
+          "x": 870,
+          "y": 850
+        }
+      }
+    },
+    {
+      "name": "send_assessment_sms_no_response",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -1670,
+          "y": 1720
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"response_status\": \"no_answer_sms\", \n\"patient_submission_token\": \"{{flow.data.patient_submission_token}}\",\n\"threshold_hash\": \"{{flow.data.threshold_hash}}\"}",
+        "url": "FILL_WITH_CUSTOM_CALLBACK_URL"
+      }
+    },
+    {
+      "name": "send_assessment_sms_error",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -2080,
+          "y": 1720
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"response_status\": \"error_sms\", \n\"patient_submission_token\": \"{{flow.data.patient_submission_token}}\",\n\"threshold_hash\": \"{{flow.data.threshold_hash}}\"}",
+        "url": "FILL_WITH_CUSTOM_CALLBACK_URL"
+      }
+    },
+    {
+      "name": "voice_send_error",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 1710,
+          "y": 820
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"response_status\": \"error_voice\", \"patient_submission_token\": \"{{flow.data.patient_submission_token}}\",\n\"threshold_hash\": \"{{flow.data.threshold_hash}}\"}",
+        "url": "FILL_WITH_CUSTOM_CALLBACK_URL"
+      }
+    },
+    {
+      "name": "say_incoming_call",
+      "type": "say-play",
+      "transitions": [
+        {
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 1310,
+          "y": -690
+        },
+        "loop": 1,
+        "say": "Hello, you have reached Sara Alert outside of your daily report requirement, please contact your public health department directly if you are experiencing symptoms."
+      }
+    },
+    {
+      "name": "split_on_language",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "noMatch"
+        },
+        {
+          "next": "call_user",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to EN",
+              "arguments": [
+                "{{flow.data.language}}"
+              ],
+              "type": "equal_to",
+              "value": "EN"
+            }
+          ]
+        },
+        {
+          "next": "call_user_spanish",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to ES",
+              "arguments": [
+                "{{flow.data.language}}"
+              ],
+              "type": "equal_to",
+              "value": "ES"
+            }
+          ]
+        },
+        {
+          "next": "call_user_french",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to FR",
+              "arguments": [
+                "{{flow.data.language}}"
+              ],
+              "type": "equal_to",
+              "value": "FR"
+            }
+          ]
+        },
+        {
+          "next": "voice_send_error_somali",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to SO",
+              "arguments": [
+                "{{flow.data.language}}"
+              ],
+              "type": "equal_to",
+              "value": "SO"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{flow.data.language}}",
+        "offset": {
+          "x": 1920,
+          "y": -20
+        }
+      }
+    },
+    {
+      "name": "call_user_spanish",
+      "type": "make-outgoing-call-v2",
+      "transitions": [
+        {
+          "next": "voice_split_spanish",
+          "event": "answered"
+        },
+        {
+          "event": "busy"
+        },
+        {
+          "next": "voice_send_no_answer_spanish",
+          "event": "noAnswer"
+        },
+        {
+          "next": "voice_send_error_spanish",
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "machine_detection_speech_threshold": "2400",
+        "detect_answering_machine": true,
+        "offset": {
+          "x": 2190,
+          "y": 550
+        },
+        "recording_channels": "mono",
+        "timeout": 60,
+        "machine_detection": "Enable",
+        "trim": "do-not-trim",
+        "record": false,
+        "machine_detection_speech_end_threshold": "1200",
+        "machine_detection_timeout": "30",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "machine_detection_silence_timeout": "10000"
+      }
+    },
+    {
+      "name": "voice_split_spanish",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "voice_send_no_answer_spanish",
+          "event": "noMatch"
+        },
+        {
+          "next": "welcome_prompt_spanish",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to human",
+              "arguments": [
+                "{{widgets.call_user_spanish.AnsweredBy}}"
+              ],
+              "type": "matches_any_of",
+              "value": "human, unknown"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.call_user_spanish.AnsweredBy}}",
+        "offset": {
+          "x": 2210,
+          "y": 930
+        }
+      }
+    },
+    {
+      "name": "voice_send_error_spanish",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 3100,
+          "y": 1130
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"response_status\": \"error_voice\", \"patient_submission_token\": \"{{flow.data.patient_submission_token}}\",\n\"threshold_hash\": \"{{flow.data.threshold_hash}}\"}",
+        "url": "FILL_WITH_CUSTOM_CALLBACK_URL"
+      }
+    },
+    {
+      "name": "voice_send_no_answer_spanish",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 2760,
+          "y": 1140
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"response_status\": \"no_answer_voice\", \"patient_submission_token\": \"{{flow.data.patient_submission_token}}\",\n\"threshold_hash\": \"{{flow.data.threshold_hash}}\"}",
+        "url": "FILL_WITH_CUSTOM_CALLBACK_URL"
+      }
+    },
+    {
+      "name": "welcome_prompt_spanish",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "voice_reply_to_prompt_spanish",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Conchita",
+        "offset": {
+          "x": 2390,
+          "y": 1200
+        },
+        "loop": 1,
+        "say": "{{flow.data.intro}}",
+        "language": "es-ES"
+      }
+    },
+    {
+      "name": "voice_reply_to_prompt_spanish",
+      "type": "gather-input-on-call",
+      "transitions": [
+        {
+          "event": "keypress"
+        },
+        {
+          "next": "check_yes_no_voice_spanish",
+          "event": "speech"
+        },
+        {
+          "next": "increment_retry_count_es",
+          "event": "timeout"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Conchita",
+        "speech_timeout": "auto",
+        "offset": {
+          "x": 2420,
+          "y": 1450
+        },
+        "loop": 1,
+        "hints": "si, no",
+        "finish_on_key": "#",
+        "say": "{{flow.data.prompt}}",
+        "language": "es-ES",
+        "stop_gather": true,
+        "gather_language": "es-ES",
+        "profanity_filter": "true",
+        "timeout": 6
+      }
+    },
+    {
+      "name": "lets_try_again_spanish",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "voice_reply_to_prompt_spanish",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Conchita",
+        "offset": {
+          "x": 2890,
+          "y": 1450
+        },
+        "loop": 1,
+        "say": "{{flow.data.try_again}}",
+        "language": "es-ES"
+      }
+    },
+    {
+      "name": "check_yes_no_voice_spanish",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "increment_retry_count_es",
+          "event": "noMatch"
+        },
+        {
+          "next": "voice_send_assessment_yes",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of si, Si",
+              "arguments": [
+                "{{widgets.voice_reply_to_prompt_spanish.SpeechResult}}"
+              ],
+              "type": "matches_any_of",
+              "value": "si, Si"
+            }
+          ]
+        },
+        {
+          "next": "voice_send_assessment_no",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of no, No",
+              "arguments": [
+                "{{widgets.voice_reply_to_prompt_spanish.SpeechResult}}"
+              ],
+              "type": "matches_any_of",
+              "value": "no, No, NO"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.voice_reply_to_prompt_spanish.SpeechResult}}",
+        "offset": {
+          "x": 2430,
+          "y": 1750
+        }
+      }
+    },
+    {
+      "name": "voice_send_assessment_yes",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "next": "thank_you_split_on_language",
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 2360,
+          "y": 2970
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"response_status\": \"success_voice\", \n\"experiencing_symptoms\":\"Yes\", \"patient_submission_token\": \"{{flow.data.patient_submission_token}}\",\n\"threshold_hash\": \"{{flow.data.threshold_hash}}\"}",
+        "url": "FILL_WITH_CUSTOM_CALLBACK_URL"
+      }
+    },
+    {
+      "name": "thank_you_voice_spanish",
+      "type": "say-play",
+      "transitions": [
+        {
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Conchita",
+        "offset": {
+          "x": 2650,
+          "y": 3840
+        },
+        "loop": 1,
+        "say": "{{flow.data.thanks}}",
+        "language": "es-ES"
+      }
+    },
+    {
+      "name": "voice_send_assessment_no",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "next": "thank_you_split_on_language",
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 2810,
+          "y": 2970
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"response_status\": \"success_voice\", \n\"experiencing_symptoms\":\"No\", \"patient_submission_token\": \"{{flow.data.patient_submission_token}}\",\n\"threshold_hash\": \"{{flow.data.threshold_hash}}\"}",
+        "url": "FILL_WITH_CUSTOM_CALLBACK_URL"
+      }
+    },
+    {
+      "name": "call_user_french",
+      "type": "make-outgoing-call-v2",
+      "transitions": [
+        {
+          "next": "voice_split_french",
+          "event": "answered"
+        },
+        {
+          "event": "busy"
+        },
+        {
+          "next": "voice_send_no_answer_french",
+          "event": "noAnswer"
+        },
+        {
+          "next": "voice_send_error_french",
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "machine_detection_speech_threshold": "2400",
+        "detect_answering_machine": true,
+        "offset": {
+          "x": 3400,
+          "y": 550
+        },
+        "recording_channels": "mono",
+        "timeout": 60,
+        "machine_detection": "Enable",
+        "trim": "do-not-trim",
+        "record": false,
+        "machine_detection_speech_end_threshold": "1200",
+        "machine_detection_timeout": "30",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "machine_detection_silence_timeout": "10000"
+      }
+    },
+    {
+      "name": "voice_split_french",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "voice_send_no_answer_french",
+          "event": "noMatch"
+        },
+        {
+          "next": "welcome_prompt_french",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to human",
+              "arguments": [
+                "{{widgets.call_user_french.AnsweredBy}}"
+              ],
+              "type": "matches_any_of",
+              "value": "human, unknown"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.call_user_french.AnsweredBy}}",
+        "offset": {
+          "x": 3420,
+          "y": 930
+        }
+      }
+    },
+    {
+      "name": "welcome_prompt_french",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "voice_reply_to_prompt_french",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Chantal",
+        "offset": {
+          "x": 3600,
+          "y": 1200
+        },
+        "loop": 1,
+        "say": "{{flow.data.intro}}",
+        "language": "fr-CA"
+      }
+    },
+    {
+      "name": "voice_send_no_answer_french",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 3970,
+          "y": 1140
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"response_status\": \"no_answer_voice\", \"patient_submission_token\": \"{{flow.data.patient_submission_token}}\",\n\"threshold_hash\": \"{{flow.data.threshold_hash}}\"}",
+        "url": "FILL_WITH_CUSTOM_CALLBACK_URL"
+      }
+    },
+    {
+      "name": "voice_send_error_french",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 4300,
+          "y": 1140
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"response_status\": \"error_voice\", \"patient_submission_token\": \"{{flow.data.patient_submission_token}}\",\n\"threshold_hash\": \"{{flow.data.threshold_hash}}\"}",
+        "url": "FILL_WITH_CUSTOM_CALLBACK_URL"
+      }
+    },
+    {
+      "name": "voice_reply_to_prompt_french",
+      "type": "gather-input-on-call",
+      "transitions": [
+        {
+          "event": "keypress"
+        },
+        {
+          "next": "check_yes_no_voice_french",
+          "event": "speech"
+        },
+        {
+          "next": "increment_retry_count_fr",
+          "event": "timeout"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Chantal",
+        "speech_timeout": "auto",
+        "offset": {
+          "x": 3630,
+          "y": 1450
+        },
+        "loop": 1,
+        "hints": "si, no",
+        "finish_on_key": "#",
+        "say": "{{flow.data.prompt}}",
+        "language": "fr-CA",
+        "stop_gather": true,
+        "gather_language": "es-ES",
+        "profanity_filter": "true",
+        "timeout": 6
+      }
+    },
+    {
+      "name": "lets_try_again_french",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "voice_reply_to_prompt_french",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Chantal",
+        "offset": {
+          "x": 4030,
+          "y": 1450
+        },
+        "loop": 1,
+        "say": "{{flow.data.try_again}}",
+        "language": "fr-CA"
+      }
+    },
+    {
+      "name": "check_yes_no_voice_french",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "increment_retry_count_fr",
+          "event": "noMatch"
+        },
+        {
+          "next": "voice_send_assessment_yes",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of oui",
+              "arguments": [
+                "{{widgets.voice_reply_to_prompt_french.SpeechResult}}"
+              ],
+              "type": "matches_any_of",
+              "value": "oui, OUI, Oui, oui.,OUI.,Oui."
+            }
+          ]
+        },
+        {
+          "next": "voice_send_assessment_no",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of non",
+              "arguments": [
+                "{{widgets.voice_reply_to_prompt_french.SpeechResult}}"
+              ],
+              "type": "matches_any_of",
+              "value": "Non, non, NON, Non. NON., non."
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.voice_reply_to_prompt_french.SpeechResult}}",
+        "offset": {
+          "x": 3640,
+          "y": 1750
+        }
+      }
+    },
+    {
+      "name": "voice_send_error_somali",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 4000,
+          "y": 550
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"response_status\": \"error_voice\", \"patient_submission_token\": \"{{flow.data.patient_submission_token}}\",\n\"threshold_hash\": \"{{flow.data.threshold_hash}}\"}",
+        "url": "FILL_WITH_CUSTOM_CALLBACK_URL"
+      }
+    },
+    {
+      "name": "OptOutTypeNotBlank",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "noMatch"
+        },
+        {
+          "next": "PostOptOutInfoSTART",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "{{trigger.message.OptOutType}}",
+              "arguments": [
+                "{{trigger.message.OptOutType}}"
+              ],
+              "type": "equal_to",
+              "value": "START"
+            }
+          ]
+        },
+        {
+          "next": "PostOptOutInfoSTOP",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to STOP",
+              "arguments": [
+                "{{trigger.message.OptOutType}}"
+              ],
+              "type": "equal_to",
+              "value": "STOP"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{trigger.message.OptOutType}}",
+        "offset": {
+          "x": -1230,
+          "y": -730
+        }
+      }
+    },
+    {
+      "name": "sms_or_voice",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "noMatch"
+        },
+        {
+          "next": "sms_assessment_prompt",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to SMS",
+              "arguments": [
+                "{{flow.data.medium}}"
+              ],
+              "type": "equal_to",
+              "value": "SMS"
+            }
+          ]
+        },
+        {
+          "next": "split_on_language",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to VOICE",
+              "arguments": [
+                "{{flow.data.medium}}"
+              ],
+              "type": "equal_to",
+              "value": "VOICE"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{flow.data.medium}}",
+        "offset": {
+          "x": 1640,
+          "y": -410
+        }
+      }
+    },
+    {
+      "name": "PostOptOutInfoSTOP",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -1290,
+          "y": 2180
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"patient_submission_token\": \"{{flow.sid}}\", \"response_status\": \"opt_out\" }",
+        "url": "FILL_WITH_CUSTOM_CALLBACK_URL"
+      }
+    },
+    {
+      "name": "OptOutTypeNotBlankReply",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "check_yes_no",
+          "event": "noMatch"
+        },
+        {
+          "next": "PostOptOutInfoSTOP",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "{{trigger.message.OptOutType}}",
+              "arguments": [
+                "{{widgets.sms_assessment_prompt.inbound.OptOutType}}"
+              ],
+              "type": "equal_to",
+              "value": "STOP"
+            }
+          ]
+        },
+        {
+          "next": "PostOptOutInfoSTART",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to START",
+              "arguments": [
+                "{{widgets.sms_assessment_prompt.inbound.OptOutType}}"
+              ],
+              "type": "equal_to",
+              "value": "START"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.sms_assessment_prompt.inbound.OptOutType}}",
+        "offset": {
+          "x": -1230,
+          "y": 340
+        }
+      }
+    },
+    {
+      "name": "OptOutTypeNotBlankRetry",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "check_yes_no_again",
+          "event": "noMatch"
+        },
+        {
+          "next": "PostOptOutInfoSTART",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "{{trigger.message.OptOutType}}",
+              "arguments": [
+                "{{widgets.bad_response.inbound.OptOutType}}"
+              ],
+              "type": "equal_to",
+              "value": "START"
+            }
+          ]
+        },
+        {
+          "next": "PostOptOutInfoSTOP",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to STOP",
+              "arguments": [
+                "{{widgets.bad_response.inbound.OptOutType}}"
+              ],
+              "type": "equal_to",
+              "value": "STOP"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.bad_response.inbound.OptOutType}}",
+        "offset": {
+          "x": -1290,
+          "y": 1440
+        }
+      }
+    },
+    {
+      "name": "PostOptOutInfoSTART",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -890,
+          "y": 2170
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"patient_submission_token\": \"{{flow.sid}}\", \"response_status\": \"opt_in\" }",
+        "url": "FILL_WITH_CUSTOM_CALLBACK_URL"
+      }
+    },
+    {
+      "name": "initialize_retry_count",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "sms_or_voice",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "0",
+            "key": "retry_count"
+          }
+        ],
+        "offset": {
+          "x": 1640,
+          "y": -670
+        }
+      }
+    },
+    {
+      "name": "increment_retry_count",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "split_on_retry_sms",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "{%- if flow.variables.retry_count -%}\n  {{flow.variables.retry_count | plus: 1}}\n{%- else -%}\n  0\n{%- endif -%}",
+            "key": "retry_count"
+          }
+        ],
+        "offset": {
+          "x": -1590,
+          "y": 590
+        }
+      }
+    },
+    {
+      "name": "split_on_retry_sms",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "max_retries_exceeded_sms",
+          "event": "noMatch"
+        },
+        {
+          "next": "bad_response",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value less than 4",
+              "arguments": [
+                "{{flow.variables.retry_count}}"
+              ],
+              "type": "less_than",
+              "value": "4"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{flow.variables.retry_count}}",
+        "offset": {
+          "x": -1590,
+          "y": 810
+        }
+      }
+    },
+    {
+      "name": "max_retries_exceeded_sms",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "send_assessment_sms_max_retries",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -1600,
+          "y": 1020
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "{{flow.data.max_retries_message}}"
+      }
+    },
+    {
+      "name": "split_on_retry_en",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "max_retries_exceeded_en",
+          "event": "noMatch"
+        },
+        {
+          "next": "say_lets_try_again",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value less than 4",
+              "arguments": [
+                "{{flow.variables.retry_count}}"
+              ],
+              "type": "less_than",
+              "value": "4"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{flow.variables.retry_count}}",
+        "offset": {
+          "x": 620,
+          "y": 1720
+        }
+      }
+    },
+    {
+      "name": "increment_retry_count_en",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "split_on_retry_en",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "{%- if flow.variables.retry_count -%}\n  {{flow.variables.retry_count | plus: 1}}\n{%- else -%}\n  0\n{%- endif -%}",
+            "key": "retry_count"
+          }
+        ],
+        "offset": {
+          "x": 610,
+          "y": 1520
+        }
+      }
+    },
+    {
+      "name": "max_retries_exceeded_en",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "voice_send_max_retry",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Joanna",
+        "offset": {
+          "x": 670,
+          "y": 2010
+        },
+        "loop": 1,
+        "say": "{{flow.data.max_retries_message}}",
+        "language": "en-US"
+      }
+    },
+    {
+      "name": "voice_send_max_retry",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 2040,
+          "y": 2240
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"response_status\": \"max_retries_voice\", \"patient_submission_token\": \"{{flow.data.patient_submission_token}}\",\n\"threshold_hash\": \"{{flow.data.threshold_hash}}\"}",
+        "url": "FILL_WITH_CUSTOM_CALLBACK_URL"
+      }
+    },
+    {
+      "name": "send_assessment_sms_max_retries",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -1600,
+          "y": 1240
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"response_status\": \"max_retries_sms\", \n\"patient_submission_token\": \"{{flow.data.patient_submission_token}}\",\n\"threshold_hash\": \"{{flow.data.threshold_hash}}\"}",
+        "url": "FILL_WITH_CUSTOM_CALLBACK_URL"
+      }
+    },
+    {
+      "name": "increment_retry_count_es",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "split_on_retry_es",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "{%- if flow.variables.retry_count -%}\n  {{flow.variables.retry_count | plus: 1}}\n{%- else -%}\n  0\n{%- endif -%}",
+            "key": "retry_count"
+          }
+        ],
+        "offset": {
+          "x": 2000,
+          "y": 1200
+        }
+      }
+    },
+    {
+      "name": "split_on_retry_es",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "max_retries_exceeded_es",
+          "event": "noMatch"
+        },
+        {
+          "next": "lets_try_again_spanish",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value less than 4",
+              "arguments": [
+                "{{flow.variables.retry_count}}"
+              ],
+              "type": "less_than",
+              "value": "4"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{flow.variables.retry_count}}",
+        "offset": {
+          "x": 2010,
+          "y": 1400
+        }
+      }
+    },
+    {
+      "name": "max_retries_exceeded_es",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "voice_send_max_retry",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Conchita",
+        "offset": {
+          "x": 2020,
+          "y": 1620
+        },
+        "loop": 1,
+        "say": "{{flow.data.max_retries_message}}",
+        "language": "es-ES"
+      }
+    },
+    {
+      "name": "max_retries_exceeded_fr",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "voice_send_max_retry",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Chantal",
+        "offset": {
+          "x": 3280,
+          "y": 1740
+        },
+        "loop": 1,
+        "say": "{{flow.data.max_retries_message}}",
+        "language": "fr-CA"
+      }
+    },
+    {
+      "name": "split_on_retry_fr",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "max_retries_exceeded_fr",
+          "event": "noMatch"
+        },
+        {
+          "next": "lets_try_again_french",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value less than 4",
+              "arguments": [
+                "{{flow.variables.retry_count}}"
+              ],
+              "type": "less_than",
+              "value": "4"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{flow.variables.retry_count}}",
+        "offset": {
+          "x": 3270,
+          "y": 1520
+        }
+      }
+    },
+    {
+      "name": "increment_retry_count_fr",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "split_on_retry_fr",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "{%- if flow.variables.retry_count -%}\n  {{flow.variables.retry_count | plus: 1}}\n{%- else -%}\n  0\n{%- endif -%}",
+            "key": "retry_count"
+          }
+        ],
+        "offset": {
+          "x": 3260,
+          "y": 1320
+        }
+      }
+    },
+    {
+      "name": "thank_you_voice_english",
+      "type": "say-play",
+      "transitions": [
+        {
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Joanna",
+        "offset": {
+          "x": 2130,
+          "y": 3850
+        },
+        "loop": 1,
+        "say": "{{flow.data.thanks}}",
+        "language": "en-US"
+      }
+    },
+    {
+      "name": "thank_you_voice_french",
+      "type": "say-play",
+      "transitions": [
+        {
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Chantal",
+        "offset": {
+          "x": 3110,
+          "y": 3820
+        },
+        "loop": 1,
+        "say": "{{flow.data.thanks}}",
+        "language": "fr-CA"
+      }
+    },
+    {
+      "name": "thank_you_split_on_language",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "thank_you_voice_english",
+          "event": "noMatch"
+        },
+        {
+          "next": "thank_you_voice_english",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to EN",
+              "arguments": [
+                "{{flow.data.language}}"
+              ],
+              "type": "equal_to",
+              "value": "EN"
+            }
+          ]
+        },
+        {
+          "next": "thank_you_voice_spanish",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to ES",
+              "arguments": [
+                "{{flow.data.language}}"
+              ],
+              "type": "equal_to",
+              "value": "ES"
+            }
+          ]
+        },
+        {
+          "next": "thank_you_voice_french",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to FR",
+              "arguments": [
+                "{{flow.data.language}}"
+              ],
+              "type": "equal_to",
+              "value": "FR"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{flow.data.language}}",
+        "offset": {
+          "x": 2460,
+          "y": 3240
+        }
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}

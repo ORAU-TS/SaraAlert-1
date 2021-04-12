@@ -1,0 +1,16 @@
+<%= render partial: 'layouts/breadcrumb', locals: { jurisdiction_path: current_user.jurisdiction_path, crumbs: [{ value: 'Return to Exposure Dashboard', href: '/' }, { value: 'Return to Monitoree Details', href: '/' }, { value: 'Edit Monitoree', href: nil }], isolation: @patient&.isolation || false } %>
+
+<%= react_component('enrollment/Enrollment', {
+                      current_user: current_user,
+                      patient: @patient,
+                      propagated_fields: @propagated_fields,
+                      editMode: true,
+                      authenticity_token: form_authenticity_token,
+                      can_add_group: current_user.can_create_patient?,
+                      has_dependents: @dependents_exclude_hoh.count.positive?,
+                      jurisdiction_paths: Hash[current_user.jurisdiction.subtree.pluck(:id, :path).map { |id, path| [id, path] }],
+                      buildings: current_user.jurisdiction.buildings.pluck(:name),
+                      assigned_users: @patient.jurisdiction.assigned_users,
+                      blocked_sms: @patient.blocked_sms,
+                      special_id_fields: @special_id_fields,
+                    }) %>

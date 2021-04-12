@@ -1,0 +1,297 @@
+$brand-primary: #226891;
+$brand-danger: #AB4642;
+$brand-warning: #8B6C38;
+$brand-success: #3A7539;
+
+$blue:    #226891 !default;
+$yellow:  #F0F020 !default;
+
+$grid-columns: 24;
+
+$grid-breakpoints: (
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+  xxl: 1400px,
+  xxxl: 1640px
+);
+
+body {
+  background-color: #f5f5f5 !important;
+}
+
+.demo-bg {
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20version%3D%271.1%27%20height%3D%27100px%27%20width%3D%27100px%27%3E%3Ctext%20transform%3D%27translate(20%2C%20100)%20rotate(-45)%27%20fill%3D%27rgb(220%2C220%2C220)%27%20font-size%3D%2730%27%3EDEMO%3C%2Ftext%3E%3C%2Fsvg%3E");
+  background-size: 100px 100px;
+}
+
+.btn.btn-square {
+  border-radius: 0;
+}
+
+.react-datepicker-popper {
+  z-index: 100 !important
+}
+
+.custom-control {
+  z-index: 0 !important;
+}
+
+.btn {
+  border-radius: 0 !important;
+}
+
+.popover {
+  border-radius: 0 !important;
+  width: 750px !important;
+  max-width: 750px !important;
+}
+
+.brand-primary-color {
+  background-color: #226891;
+  color: #fff;
+}
+
+.card.card-square {
+  border-radius: 0;
+}
+
+.card {
+  border-radius: 0 !important;
+}
+
+.table-smaller-font {
+  font-size: 0.9em;
+}
+
+.nav-version {
+  font-size: 50%;
+}
+
+.form-control.form-square {
+  border-radius: 0;
+}
+
+.authy-form input[type=text] {
+  width: inherit !important;
+}
+
+.breadcrumb {
+  border-radius: 0 !important;
+}
+
+.alert {
+  border-radius: 0 !important;
+}
+
+.button {
+  border-radius: 0 !important;
+}
+
+.form-control {
+  border-radius: 0 !important;
+}
+
+.form-group-inline {
+  display: inline-flex;
+}
+
+.nav-input-label {
+  font-weight: 600;
+}
+
+.lead-bc {
+  font-size: 1.10rem !important;
+}
+
+select.form-control {
+  -webkit-appearance: none;
+  -webkit-border-radius: 0px;
+  background-image: url("data:image/svg+xml;utf8,<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='24' height='24' viewBox='0 0 24 24'><path fill='%23444' d='M7.406 7.828l4.594 4.594 4.594-4.594 1.406 1.406-6 6-6-6z'></path></svg>");
+  background-position: 100% 50%;
+  background-repeat: no-repeat;
+  border-radius: 0;
+}
+
+.select__placeholder {
+  color: #606060 !important;
+}
+
+.badge-larger-font {
+  font-size: 90% !important;
+}
+
+.badge-hoh {
+  float: right;
+  vertical-align: top;
+}
+
+.badge-cc {
+  float: right;
+  vertical-align: top;
+}
+
+.badge-muted {
+  background-color: #6c757d !important;
+  color: #fff;
+}
+
+.table .concern {
+  color: red;
+}
+
+.b-border-right-3 {
+  border-right: 3px solid black !important;
+}
+
+.g-border-top {
+  border-top: 1px solid rgba(0, 0, 0, 0.125) !important;
+}
+
+.g-border-bottom {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125) !important;
+}
+
+.g-border-bottom-2 {
+  border-bottom: 2px solid rgba(0, 0, 0, 0.125) !important;
+}
+
+.mb-0 {
+  margin-bottom: 0px !important;
+}
+
+.pt-0 {
+  padding-top: 0px !important;
+}
+
+.mx-0 {
+  margin-left: 0px;
+  margin-right: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+.navbar-brand {
+  display: inline-block !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-right: 1rem !important;
+  font-size: 1.6rem !important;
+  line-height: inherit !important;
+  white-space: nowrap !important;
+  font-weight: 250 !important;
+}
+
+.nav-link-inactive {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.display-5 {
+  font-size: 2.5rem;
+  font-weight: 300;
+  line-height: 1.2;
+}
+
+.display-6 {
+  font-size: 1.5rem;
+  font-weight: 300;
+  line-height: 1.2;
+}
+
+.logo-header {
+  background-size: 20px 30px;
+}
+
+.badge-padding {
+  margin: 0 !important;
+}
+
+.nav-tabs .nav-link {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+
+.modal-content {
+  border-radius: 0 !important;
+}
+
+.static-modal-container {
+  // This is styling for the confirm-dialog box
+  // The aggressive z-index ensures that this modal
+  // will be drawn in front of any other modals
+  background-color: rgba(20, 20, 20, 0.60);
+  z-index: 2000;
+}
+
+.confirm-export-modal-container  {
+  // The aggressive z-index ensures that this modal
+  // will be drawn in front of any other modals except the confirm-dialog box
+  background-color: rgba(20, 20, 20, 0.60);
+  z-index: 1999;
+}
+
+.advanced-filter-modal-container {
+  // The aggressive z-index ensures that this modal
+  // will be drawn in front of any other modals except the confirm-dialog box
+  background-color: rgba(20, 20, 20, 0.60);
+  z-index: 1999;
+}
+
+.modal-import {
+  max-width: 95% !important;
+}
+
+.modal-import {
+  max-width: 50% !important;
+}
+
+.modal-header {
+  background-color: #226891 !important;
+  border-top-left-radius: 0px !important;
+  border-top-right-radius: 0px !important;
+  border: 0px !important;
+}
+
+.modal-content {
+  border: 0px !important;
+}
+
+.modal-title {
+  color: #fff !important;
+}
+
+.reports-actions-title {
+  height: 30px !important;
+}
+
+.dropdown-menu {
+  border-radius: 0 !important;
+}
+
+.modal-am {
+  width: 60% !important;
+  max-width: 60% !important;
+}
+
+.modal-move-household {
+  max-width: 60% !important;
+  width: 60%;
+}
+
+.justify-unset {
+  justify-content: unset;
+}
+
+.wrap {
+  word-break: break-all;
+}
+
+// This is how we deal with slight vertical overflow from a dropdown in a table that needs to be horizontal scrollable.
+// See this for the core issue: https://stackoverflow.com/a/6433475
+.reports-table{
+  padding-top: 80px;
+  margin-top: -80px;
+}
+

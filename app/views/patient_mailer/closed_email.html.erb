@@ -1,0 +1,11 @@
+<% content_for :preheader do %>
+  <%= t('assessments.email.closed.header', locale: @lang || :en) %>
+<% end %>
+
+<% content_for :body do %>
+  <%= sanitize @email_body.html_safe %>
+<% end %>
+
+<% content_for :footer do %>
+  <%= sanitize @shared_footer.html_safe %>
+<% end %>

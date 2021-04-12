@@ -1,0 +1,185 @@
+version: "3"
+
+services:
+  sara-alert-enrollment:
+    image: "${SARA_ALERT_IMAGE}:development-test"
+    environment:
+      - REDIS_URL=redis://redis-enrollment:6379/1
+    env_file:
+      - .env-prod-enrollment
+    restart: unless-stopped
+    networks:
+      - dt-net-enrollment
+    depends_on:
+      - redis-enrollment
+      - mysql-enrollment
+    command: "bin/bundle exec rails s -u puma -p 3000 -b 0.0.0.0"
+    volumes:
+      - '~/tls:/app/disease-trakker/tls:ro'
+  sara-alert-assessment:
+    image: "${SARA_ALERT_IMAGE}:development-test"
+    environment:
+      - REDIS_URL=redis://redis-bridge:6379/1
+    env_file:
+      - .env-prod-assessment
+    restart: unless-stopped
+    networks:
+      - dt-net-assessment
+      - dt-net-bridge
+    depends_on:
+      - redis-bridge
+      - mysql-assessment
+    command: "bin/bundle exec rails s -u puma -p 3000 -b 0.0.0.0"
+    volumes:
+      - '~/tls:/app/disease-trakker/tls:ro'
+  sara-alert-api:
+    image: "${SARA_ALERT_IMAGE}:development-test"
+    environment:
+      - REDIS_URL=redis://redis-enrollment:6379/1
+    env_file:
+      - .env-prod-enrollment
+    restart: unless-stopped
+    networks:
+      - dt-net-enrollment
+    depends_on:
+      - redis-enrollment
+      - mysql-enrollment
+    command: "bin/bundle exec rails s -u puma -p 3000 -b 0.0.0.0"
+    volumes:
+      - '~/tls:/app/disease-trakker/tls:ro'
+  mysql-enrollment:
+    image: 'mariadb:10.5'
+    volumes:
+      - 'mysql-enrollment:/var/lib/mysql'
+    env_file:
+      - .env-prod-enrollment
+    restart: unless-stopped
+    command: ['--character-set-server=utf8', '--collation-server=utf8_unicode_ci']
+    networks:
+      - dt-net-enrollment
+  mysql-assessment:
+    image: 'mariadb:10.5'
+    volumes:
+      - 'mysql-assessment:/var/lib/mysql'
+    env_file:
+      - .env-prod-assessment
+    restart: unless-stopped
+    command: ['--character-set-server=utf8', '--collation-server=utf8_unicode_ci']
+    networks:
+      - dt-net-assessment
+  redis-enrollment:
+    image: "redis:alpine"
+    volumes:
+      - 'redis-enrollment:/data'
+    command: redis-server
+    restart: unless-stopped
+    networks:
+      - dt-net-enrollment
+  redis-bridge:
+    image: "redis:alpine"
+    volumes:
+      - 'redis-bridge:/data'
+    command: redis-server
+    restart: unless-stopped
+    networks:
+      - dt-net-bridge
+  sidekiq-enrollment-mailer:
+    image: "${SARA_ALERT_IMAGE}:development-test"
+    environment:
+      - REDIS_URL=redis://redis-enrollment:6379/1
+    env_file:
+      - .env-prod-enrollment
+    restart: unless-stopped
+    networks:
+      - dt-net-enrollment
+    command: "bin/bundle exec sidekiq -q mailers"
+    depends_on:
+      - redis-enrollment
+      - sara-alert-enrollment
+      - mysql-enrollment
+  sidekiq-enrollment-export:
+    image: "${SARA_ALERT_IMAGE}:development-test"
+    environment:
+      - REDIS_URL=redis://redis-enrollment:6379/1
+    env_file:
+      - .env-prod-enrollment
+    restart: unless-stopped
+    networks:
+      - dt-net-enrollment
+    command: "bin/bundle exec sidekiq -q exports"
+    depends_on:
+      - redis-enrollment
+      - sara-alert-enrollment
+      - mysql-enrollment
+  sidekiq-enrollment-default:
+    image: "${SARA_ALERT_IMAGE}:development-test"
+    environment:
+      - REDIS_URL=redis://redis-enrollment:6379/1
+    env_file:
+      - .env-prod-enrollment
+    restart: unless-stopped
+    networks:
+      - dt-net-enrollment
+    command: "bin/bundle exec sidekiq -q default"
+    depends_on:
+      - redis-enrollment
+      - sara-alert-enrollment
+      - mysql-enrollment
+  sidekiq-bridge-enrollment:
+    image: "${SARA_ALERT_IMAGE}:development-test"
+    environment:
+      - REDIS_URL=redis://redis-bridge:6379/1
+    env_file:
+      - .env-prod-enrollment
+    restart: unless-stopped
+    networks:
+      - dt-net-bridge
+      - dt-net-enrollment
+    command: "bin/bundle exec rake reports:receive_and_process_reports"
+    depends_on:
+      - redis-bridge
+      - sara-alert-enrollment
+      - mysql-enrollment
+  sidekiq-bridge-assessment:
+    image: "${SARA_ALERT_IMAGE}:development-test"
+    environment:
+      - REDIS_URL=redis://redis-bridge:6379/1
+    env_file:
+      - .env-prod-assessment
+    restart: unless-stopped
+    networks:
+      - dt-net-bridge
+      - dt-net-assessment
+    command: "bin/bundle exec sidekiq -q default"
+    depends_on:
+      - redis-bridge
+      - sara-alert-assessment
+      - mysql-assessment
+  nginx:
+    image: ${NGINX_IMAGE}:latest
+    volumes:
+      - '~/tls/nginx.conf:/etc/nginx/nginx.conf:ro'
+      - '~/tls/puma.key:/etc/nginx/puma.key:ro'
+      - '~/tls/puma.crt:/etc/nginx/puma.crt:ro'
+    ports:
+      - 80:80
+      - 443:443
+    restart: unless-stopped
+    command: nginx -g 'daemon off;'
+    depends_on:
+      - sara-alert-assessment
+      - sara-alert-enrollment
+    networks:
+      - dt-net-assessment
+      - dt-net-enrollment
+
+volumes:
+  redis-enrollment:
+  redis-bridge:
+  mysql-assessment:
+  mysql-enrollment:
+
+networks:
+  dt-net-enrollment:
+  dt-net-assessment:
+  dt-net-bridge:

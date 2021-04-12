@@ -1,0 +1,83 @@
+a.anchor {
+  display: block;
+  position: relative;
+  top: -100px;
+  visibility: hidden;
+}
+
+.form-check-group {
+  margin-bottom: 0px !important;
+}
+
+.saa-notification {
+  margin-left: 15px
+}
+
+.saa-notification-header {
+  margin-top: 10px;
+  margin-bottom: 15px;
+}
+
+.saa-inline-right-check {
+  display: inline-block;
+  margin-left: 10px;
+}
+
+.saa-spaced-table-icons tr td svg {
+  width: 1.8rem !important;
+}
+.saa-footer {
+  z-index: 9001;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  nav {
+    padding: 3px 0;
+    background-color: rgb(27, 82, 114);
+  }
+  nav.has-warning {
+    background-color: #dc3545;
+  }
+  a {
+    color: #ccc;
+    font-size: .9em;
+  }
+  a:hover{
+    color: #fff;
+    text-decoration: none;
+  }
+}
+.header-footer-padding {
+  padding-bottom: 28px;
+}
+
+.demo-warning-banner{
+  position: fixed;
+}
+
+@media (max-width: 767.98px) {
+  .header-footer-padding {
+    padding-bottom: 20px;
+  }
+  .saa-footer { 
+    position: static;
+    bottom: auto;
+    margin: auto;
+    a {
+      font-size: .9em;
+    }
+  }
+}
+
+//prevent bootstrap modal from blocking insert link visibility
+.ck-rounded-corners .ck.ck-balloon-panel, .ck.ck-balloon-panel.ck-rounded-corners {
+  z-index: 10055 !important;
+}
+
+.saa-notifications-table td:last-child {
+  width: 30%;
+  min-width: 180px; 
+}

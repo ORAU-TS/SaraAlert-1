@@ -1,0 +1,8 @@
+<%= stylesheet_link_tag 'AdminTable' %>
+<%= render partial: 'layouts/breadcrumb', locals: { jurisdiction_path: current_user.jurisdiction_path, crumbs: [{ value: 'Admin Panel', href: nil }] } %>
+<%= react_component('admin/AdminTable', {
+                      role_types: Roles.all_assignable_role_values.reverse.map { |role| role.split('_').map(&:capitalize).join(' ').saa_role_name },
+                      authenticity_token: form_authenticity_token,
+                      current_user_email: current_user.email,
+                      is_usa_admin: current_user.can_send_admin_emails?
+                    }) %>

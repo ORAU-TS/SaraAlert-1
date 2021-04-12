@@ -1,0 +1,52 @@
+# Version
+version: v1.24.1
+
+# Base path (useful for WARP or similar environments)
+base_path: ''
+
+# How many days an enrolled monitoree should be monitored
+monitoring_period_days: <%= ENV["MONITORING_PERIOD_DAYS"] || 14 %>
+
+# How long a monitoree should be in isolation and considered non-reporting before we halt daily reports
+isolation_non_reporting_max_days: <%= ENV["SARA_ALERT_ISOLATION_NON_REPORING_MAX"] || 7 %>
+
+# How many minutes in a reporting period (hint: 1440 mins for 24 hours)
+reporting_period_minutes: <%= ENV["SARA_ALERT_REPORTING_PERIOD_MINUTES"] || 1440 %>
+
+# How many minutes after a closed record last_update it can be purged
+purgeable_after: <%= ENV["SARA_ALERT_PURGEABLE_AFTER_MINUTES"] || 20160 %>
+
+# The day and time of week to run the purge user records job
+weekly_purge_date: <%= ENV["SARA_ALERT_WEEKLY_PURGE_DATE"] || 'sunday 12:00am' %>
+
+# The day and time of week to warn users of records that will soon be purged
+weekly_purge_warning_date: <%= ENV["SARA_ALERT_WEEKLY_PURGE_WARNING_DATE"] || 'thursday 12:00pm' %>
+
+# How many minutes after a report was received the monitoree can re-report
+reporting_limit: <%= ENV["SARA_ALERT_REPORTING_LIMIT_MINUTES"] || 15 %>
+
+# Should Sara Alert send emails?
+enable_email: <%= ENV["SARA_ALERT_ENABLE_EMAIL"] || true %>
+
+# Should Sara Alert send SMS messages?
+enable_sms: <%= ENV["SARA_ALERT_ENABLE_SMS"] || true %>
+
+# Should Sara Alert make telephone calls?
+enable_voice: <%= ENV["SARA_ALERT_ENABLE_VOICE"] || true %>
+
+# Assessment Report Mode
+report_mode: <%= ENV["SARA_ALERT_REPORT_MODE"] || false %>
+
+# Optional Sentry URL for application monitoring and error reporting
+sentry_url: <%= ENV["SENTRY_URL"] || '' %>
+
+# Address to send job run results
+job_run_email: <%= ENV["JOB_RUN_EMAIL"] || '' %>
+
+contact_us_email: <%= ENV["CONTACT_US_EMAIL"] || 'support@saraalertacademic.org' %>
+
+# Google reCaptcha Creds
+google_recaptcha_key: ''
+google_recaptcha_secret: ''
+# Maximum number of allowed user saved filters
+max_user_filters: <%= ENV["MAX_USER_FILTERS"] || 150 %>
