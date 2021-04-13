@@ -295,6 +295,20 @@ class History < ApplicationRecord
     create_history(history[:patient], history[:created_by], HISTORY_TYPES[:monitoring_change], comment)
   end
 
+  def self.saa_last_day_at_work(history)
+    field = {
+      name: 'Last Day At Work Date',
+      type: 'date',
+      old_value: history[:patient_before][:saa_last_day_at_work]&.to_date&.strftime('%m/%d/%Y'),
+      new_value: history[:updates][:saa_last_day_at_work]&.to_date&.strftime('%m/%d/%Y')
+    }
+    return if field[:old_value] == field[:new_value]
+
+    comment = compose_message(history, field)
+    comment += ' The system will now populate this date.' if field[:new_value].nil?
+    create_history(history[:patient], history[:created_by], HISTORY_TYPES[:monitoring_change], compose_message(history, field))
+  end
+
   def self.last_date_of_exposure(history)
     field = {
       name: 'Last Date of Exposure',

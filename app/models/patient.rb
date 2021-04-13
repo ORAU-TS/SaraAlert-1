@@ -1105,6 +1105,8 @@ class Patient < ApplicationRecord
         update_patient_history_for_isolation(patient_before, updated_value)
       when :symptom_onset
         History.symptom_onset(history_data)
+      when :saa_last_day_at_work
+        History.saa_last_day_at_work(history_data)
       when :case_status
         History.case_status(history_data, diff_state)
 

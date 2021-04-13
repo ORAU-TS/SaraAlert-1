@@ -50,6 +50,7 @@ class LastDateExposure extends React.Component {
       axios.defaults.headers.common['X-CSRF-Token'] = this.props.authenticity_token;
       axios
         .post(window.BASE_PATH + '/patients/' + this.props.patient.id + '/status', {
+          saa_last_day_at_work: this.state.saa_last_day_at_work,
           last_date_of_exposure: this.state.last_date_of_exposure,
           continuous_exposure: this.state.continuous_exposure,
           apply_to_household: this.state.apply_to_household,
@@ -87,12 +88,23 @@ class LastDateExposure extends React.Component {
     }
   };
 
+  openLastDayAtWorkModal = date => {
+    if (date !== this.props.patient.saa_last_day_at_work) {
+      this.setState({
+        showLastDayAtWorkModal: true,
+        saa_last_day_at_work: date,
+      });
+    }
+  };
+
   closeModal = () => {
     this.setState({
       last_date_of_exposure: this.props.patient.last_date_of_exposure,
       continuous_exposure: !!this.props.patient.continuous_exposure,
+      saa_last_day_at_work: this.props.patient.saa_last_day_at_work,
       showLastDateOfExposureModal: false,
       showContinuousExposureModal: false,
+      showLastDayAtWorkModal: false,
       apply_to_household: false,
       apply_to_household_cm_only: false,
     });
@@ -177,7 +189,7 @@ class LastDateExposure extends React.Component {
           <Button
             variant="primary btn-square"
             onClick={submit}
-            disabled={this.state.loading || (!this.state.last_date_of_exposure && !this.state.continuous_exposure)}>
+            disabled={this.state.loading || (!this.state.last_date_of_exposure && !this.state.continuous_exposure && !this.state.saa_last_day_at_work)}>
             {this.state.loading && (
               <React.Fragment>
                 <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>&nbsp;
@@ -212,6 +224,15 @@ class LastDateExposure extends React.Component {
             } and Continuous Exposure will be turned ${this.state.continuous_exposure ? 'ON' : 'OFF'} for the selected record${
               this.props.is_household_member ? '(s):' : '.'
             }`,
+            this.closeModal,
+            this.submit
+          )}
+        {this.state.showLastDayAtWorkModal &&
+          this.createModal(
+            'Last Day at Work',
+            `Are you sure you want to ${this.state.saa_last_day_at_work ? 'modify' : 'clear'} the Last Day at Work${
+              this.state.saa_last_day_at_work ? ` to ${moment(this.state.saa_last_day_at_work).format('MM/DD/YYYY')}` : ''
+            }? The Last Day at Work will be updated ${this.state.saa_last_day_at_work ? '' : 'to blank '}${' and might affect overlap.'}`,
             this.closeModal,
             this.submit
           )}
@@ -307,8 +328,7 @@ class LastDateExposure extends React.Component {
                   placement="top"
                   customClass="form-control-lg"
                   ariaLabel="Last Day At Work"
-                  onChange={() => {}}
-                  disabled
+                  onChange={this.openLastDayAtWorkModal}
                 />
               </Col>
             </Row>

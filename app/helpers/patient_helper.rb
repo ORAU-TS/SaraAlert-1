@@ -74,6 +74,7 @@ module PatientHelper
       user_defined_symptom_onset
       extended_isolation
       jurisdiction_id
+      saa_last_day_at_work
     ]
   end
 

@@ -326,6 +326,32 @@ class Exposure extends React.Component {
           </Form.Group>
         </Form.Row>
         <Form.Row>
+          <Form.Group as={Col} md="7" controlId="saa_last_day_at_work" className="mb-2">
+            <Form.Label className="nav-input-label">LAST DAY AT WORK</Form.Label>
+            <DateInput
+              id="saa_last_day_at_work"
+              aria-label="Last Day At Work"
+              date={this.state.current.patient.saa_last_day_at_work}
+              minDate={'2020-01-01'}
+              maxDate={moment()
+                .add(30, 'days')
+                .format('YYYY-MM-DD')}
+              onChange={date => this.handleDateChange('saa_last_day_at_work', date)}
+              placement="bottom"
+              isInvalid={!!this.state.errors['saa_last_day_at_work']}
+              customClass="form-control-lg"
+              isClearable
+            />
+            <Form.Control.Feedback className="d-block" type="invalid">
+              {this.state.errors['saa_last_day_at_work']}
+            </Form.Control.Feedback>
+          </Form.Group>
+          <Form.Group as={Col} md="10" controlId="saa_has_overlap" className="mb-2">
+            <Form.Label className="nav-input-label">OVERLAP</Form.Label>
+            <Form.Control readOnly size="lg" className="form-square" value={this.state.saa_has_overlap ? 'Yes' : 'No'} />
+          </Form.Group>
+        </Form.Row>
+        <Form.Row>
           <Form.Group as={Col} md="24" className="mb-2">
             <Form.Label htmlFor="exposure_notes" className="nav-input-label ml-1">
               NOTES{schema?.fields?.exposure_notes?._exclusive?.required && ' *'}
@@ -424,32 +450,6 @@ class Exposure extends React.Component {
               onChange={this.handleChange}
             />
             <InfoTooltip tooltipTextKey="continuousExposure" location="right"></InfoTooltip>
-          </Form.Group>
-        </Form.Row>
-        <Form.Row>
-          <Form.Group as={Col} md="7" controlId="saa_last_day_at_work" className="mb-2">
-            <Form.Label className="nav-input-label">LAST DAY AT WORK</Form.Label>
-            <DateInput
-              id="saa_last_day_at_work"
-              aria-label="Last Day At Work"
-              date={this.state.current.patient.saa_last_day_at_work}
-              minDate={'2020-01-01'}
-              maxDate={moment()
-                .add(30, 'days')
-                .format('YYYY-MM-DD')}
-              onChange={date => this.handleDateChange('saa_last_day_at_work', date)}
-              placement="bottom"
-              isInvalid={!!this.state.errors['saa_last_day_at_work']}
-              customClass="form-control-lg"
-              isClearable
-            />
-            <Form.Control.Feedback className="d-block" type="invalid">
-              {this.state.errors['saa_last_day_at_work']}
-            </Form.Control.Feedback>
-          </Form.Group>
-          <Form.Group as={Col} md="10" controlId="saa_has_overlap" className="mb-2">
-            <Form.Label className="nav-input-label">OVERLAP</Form.Label>
-            <Form.Control readOnly size="lg" className="form-square" value={this.state.saa_has_overlap ? 'Yes' : 'No'} />
           </Form.Group>
         </Form.Row>
         <Form.Label className="nav-input-label pb-1">EXPOSURE RISK FACTORS (USE COMMAS TO SEPARATE MULTIPLE SPECIFIED VALUES)</Form.Label>
